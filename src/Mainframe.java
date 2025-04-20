@@ -10,20 +10,3 @@ class Mainframe{
        frame.setVisible(true);
     }
 }
-
-// import java.awt.*;
-
-// import javax.swing.*;
-
-// public class Mainframe imports JFrame{
-//     public void initialize{
-//         JFrame miniPanel = new JFrame();
-//         miniPanel.setLayout(new BorderLeyout());
-
-//         setTitle("Welcome");
-//         setSize(500,600);
-//         setMinimumSize(new Dimension(300,400));
-//         setDefaultCloseOperation(WindowsConstants.EXIT_ON_CLOSE);
-//         setVisible(true);
-//     }
-// }
