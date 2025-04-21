@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.io.*;
 
 public class Mainframe extends JFrame {
 
@@ -11,6 +12,8 @@ public class Mainframe extends JFrame {
 
     private double balance = 0.0;
     private ArrayList<String> transactions = new ArrayList<>();
+
+    private final String FILE_NAME = "transactions.txt";
 
     public Mainframe() {
         setTitle("💰 Income and Expense Tracker");
@@ -62,6 +65,9 @@ public class Mainframe extends JFrame {
         incomeBtn.addActionListener(e -> addTransaction(true));
         expenseBtn.addActionListener(e -> addTransaction(false));
 
+        // Load existing data
+        loadDataFromFile();
+
         setVisible(true);
     }
 
@@ -84,9 +90,12 @@ public class Mainframe extends JFrame {
             transactions.add(entry);
             updateUI();
 
-            // Clear fields
+            // Clear input fields
             descriptionField.setText("");
             amountField.setText("");
+
+            // Save to file
+            saveDataToFile();
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter a valid number.");
@@ -99,5 +108,38 @@ public class Mainframe extends JFrame {
             transactionArea.append(t + "\n");
         }
         balanceLabel.setText(String.format("Balance: $%.2f", balance));
+    }
+
+    private void saveDataToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            for (String transaction : transactions) {
+                writer.write(transaction);
+                writer.newLine();
+            }
+            writer.write("BALANCE=" + balance);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error saving data: " + e.getMessage());
+        }
+    }
+
+    private void loadDataFromFile() {
+        transactions.clear();
+        balance = 0;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("BALANCE=")) {
+                    balance = Double.parseDouble(line.substring(8));
+                } else {
+                    transactions.add(line);
+                }
+            }
+            updateUI();
+        } catch (FileNotFoundException e) {
+            // Ignore if first time running
+        } catch (IOException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage());
+        }
     }
 }
