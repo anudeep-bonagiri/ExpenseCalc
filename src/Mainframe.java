@@ -68,6 +68,15 @@ public class Mainframe extends JFrame {
         // Load existing data
         loadDataFromFile();
 
+        // --- Clear Button ---
+        JButton clearBtn = new JButton("Clear All");
+        clearBtn.setBounds(180, 410, 120, 30);
+        add(clearBtn);
+
+        // Clear button action
+        clearBtn.addActionListener(e -> clearAllData());
+
+
         setVisible(true);
     }
 
@@ -142,4 +151,25 @@ public class Mainframe extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage());
         }
     }
+
+    private void clearAllData() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to clear all data?",
+            "Confirm Clear",
+            JOptionPane.YES_NO_OPTION);
+    
+        if (confirm == JOptionPane.YES_OPTION) {
+            transactions.clear();
+            balance = 0.0;
+            updateUI();
+    
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+                // Overwrite file with nothing
+                writer.write("");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error clearing file: " + e.getMessage());
+            }
+        }
+    }
+    
 }
