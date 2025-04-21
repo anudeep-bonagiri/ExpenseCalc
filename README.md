@@ -57,5 +57,5 @@ IncomeExpenseCalculator/
 ├── src/
 │   ├── Mainframe.java
 │   ├── App.java/
-│   ├── README.md
+├── README.md
 ├── transactions.txt
