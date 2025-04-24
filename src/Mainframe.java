@@ -7,7 +7,7 @@ import java.io.*;
 public class Mainframe extends JFrame {
 
     private JTextField descriptionField, amountField;
-    private JTextArea transactionArea;
+    private JEditorPane transactionArea;
     private JLabel balanceLabel;
 
     private double balance = 0.0;
@@ -49,11 +49,13 @@ public class Mainframe extends JFrame {
         add(expenseBtn);
 
         // --- Transaction Area ---
-        transactionArea = new JTextArea();
-        transactionArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(transactionArea);
-        scrollPane.setBounds(30, 150, 400, 200);
-        add(scrollPane);
+        transactionArea = new JEditorPane();
+transactionArea.setContentType("text/html");
+transactionArea.setEditable(false);
+JScrollPane scrollPane = new JScrollPane(transactionArea);
+scrollPane.setBounds(30, 150, 400, 200);
+add(scrollPane);
+
 
         // --- Balance Label ---
         balanceLabel = new JLabel("Balance: $0.00");
@@ -112,12 +114,24 @@ public class Mainframe extends JFrame {
     }
 
     private void updateUI() {
-        transactionArea.setText("");
+        StringBuilder html = new StringBuilder("<html><body style='font-family: Arial;'>");
+    
         for (String t : transactions) {
-            transactionArea.append(t + "\n");
+            if (t.startsWith("Income")) {
+                html.append("<span style='color: green;'>").append(t).append("</span><br>");
+            } else if (t.startsWith("Expense")) {
+                html.append("<span style='color: red;'>").append(t).append("</span><br>");
+            } else {
+                html.append(t).append("<br>");
+            }
         }
+    
+        html.append("</body></html>");
+        transactionArea.setText(html.toString());
+    
         balanceLabel.setText(String.format("Balance: $%.2f", balance));
     }
+    
 
     private void saveDataToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
