@@ -4,24 +4,28 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.*;
 
+// Main class that creates a GUI for tracking income and expenses
 public class Mainframe extends JFrame {
 
+    // GUI components for user input and display
     private JTextField descriptionField, amountField;
     private JEditorPane transactionArea;
     private JLabel balanceLabel;
 
+    // Data variables
     private double balance = 0.0;
     private ArrayList<String> transactions = new ArrayList<>();
 
-    private final String FILE_NAME = "transactions.txt";
+    private final String FILE_NAME = "transactions.txt"; // File to save data
 
+    // Constructor to build the user interface
     public Mainframe() {
         setTitle("💰 Income and Expense Tracker");
         setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
-        // --- Input: Description ---
+        // --- Input Fields ---
         JLabel descLabel = new JLabel("Description:");
         descLabel.setBounds(30, 20, 100, 25);
         add(descLabel);
@@ -30,7 +34,6 @@ public class Mainframe extends JFrame {
         descriptionField.setBounds(130, 20, 300, 25);
         add(descriptionField);
 
-        // --- Input: Amount ---
         JLabel amtLabel = new JLabel("Amount ($):");
         amtLabel.setBounds(30, 60, 100, 25);
         add(amtLabel);
@@ -39,7 +42,7 @@ public class Mainframe extends JFrame {
         amountField.setBounds(130, 60, 300, 25);
         add(amountField);
 
-        // --- Buttons ---
+        // --- Buttons for adding income and expense ---
         JButton incomeBtn = new JButton("Add Income");
         incomeBtn.setBounds(130, 100, 120, 30);
         add(incomeBtn);
@@ -48,40 +51,40 @@ public class Mainframe extends JFrame {
         expenseBtn.setBounds(260, 100, 120, 30);
         add(expenseBtn);
 
-        // --- Transaction Area ---
+        // --- Area to display transactions ---
         transactionArea = new JEditorPane();
-transactionArea.setContentType("text/html");
-transactionArea.setEditable(false);
-JScrollPane scrollPane = new JScrollPane(transactionArea);
-scrollPane.setBounds(30, 150, 400, 200);
-add(scrollPane);
+        transactionArea.setContentType("text/html"); // Enables colored text
+        transactionArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(transactionArea);
+        scrollPane.setBounds(30, 150, 400, 200);
+        add(scrollPane);
 
-
-        // --- Balance Label ---
+        // --- Displays current balance ---
         balanceLabel = new JLabel("Balance: $0.00");
         balanceLabel.setBounds(30, 370, 300, 25);
         balanceLabel.setFont(new Font("Arial", Font.BOLD, 14));
         add(balanceLabel);
 
-        // --- Action Listeners ---
+        // --- Action Listeners for buttons ---
         incomeBtn.addActionListener(e -> addTransaction(true));
         expenseBtn.addActionListener(e -> addTransaction(false));
 
-        // Load existing data
+        // Load saved data from file
         loadDataFromFile();
 
-        // --- Clear Button ---
+        // --- Clear all button ---
         JButton clearBtn = new JButton("Clear All");
         clearBtn.setBounds(180, 410, 120, 30);
         add(clearBtn);
 
-        // Clear button action
+        // Add functionality to clear button
         clearBtn.addActionListener(e -> clearAllData());
 
-
+        // Make window visible
         setVisible(true);
     }
 
+    // Adds a new income or expense to the tracker
     private void addTransaction(boolean isIncome) {
         String desc = descriptionField.getText().trim();
         String amtText = amountField.getText().trim();
@@ -99,23 +102,24 @@ add(scrollPane);
             String type = isIncome ? "Income" : "Expense";
             String entry = String.format("%s: %s | $%.2f", type, desc, Math.abs(amt));
             transactions.add(entry);
-            updateUI();
 
-            // Clear input fields
+            updateUI(); // Refresh display
+
+            // Clear inputs
             descriptionField.setText("");
             amountField.setText("");
 
-            // Save to file
-            saveDataToFile();
+            saveDataToFile(); // Save data
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter a valid number.");
         }
     }
 
+    // Updates the transaction display and balance
     private void updateUI() {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial;'>");
-    
+
         for (String t : transactions) {
             if (t.startsWith("Income")) {
                 html.append("<span style='color: green;'>").append(t).append("</span><br>");
@@ -125,26 +129,27 @@ add(scrollPane);
                 html.append(t).append("<br>");
             }
         }
-    
+
         html.append("</body></html>");
         transactionArea.setText(html.toString());
-    
+
         balanceLabel.setText(String.format("Balance: $%.2f", balance));
     }
-    
 
+    // Saves transaction history and balance to a file
     private void saveDataToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
             for (String transaction : transactions) {
                 writer.write(transaction);
                 writer.newLine();
             }
-            writer.write("BALANCE=" + balance);
+            writer.write("BALANCE=" + balance); // Save balance at the end
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Error saving data: " + e.getMessage());
         }
     }
 
+    // Loads saved data from file when the app starts
     private void loadDataFromFile() {
         transactions.clear();
         balance = 0;
@@ -158,32 +163,31 @@ add(scrollPane);
                     transactions.add(line);
                 }
             }
-            updateUI();
+            updateUI(); // Refresh UI after loading
         } catch (FileNotFoundException e) {
-            // Ignore if first time running
+            // File not found is okay on first run
         } catch (IOException | NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage());
         }
     }
 
+    // Clears all data and resets the application
     private void clearAllData() {
         int confirm = JOptionPane.showConfirmDialog(this,
             "Are you sure you want to clear all data?",
             "Confirm Clear",
             JOptionPane.YES_NO_OPTION);
-    
+
         if (confirm == JOptionPane.YES_OPTION) {
             transactions.clear();
             balance = 0.0;
-            updateUI();
-    
+            updateUI(); // Reset display
+
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
-                // Overwrite file with nothing
-                writer.write("");
+                writer.write(""); // Overwrite file to clear data
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Error clearing file: " + e.getMessage());
             }
         }
     }
-    
 }
