@@ -3,6 +3,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 
 // Main class that creates a GUI for tracking income and expenses
 public class Mainframe extends JFrame {
@@ -77,64 +83,84 @@ public class Mainframe extends JFrame {
         clearBtn.setBounds(180, 410, 120, 30);
         add(clearBtn);
 
+        // --- Calendar Button ---
+JButton calendarBtn = new JButton("View Calendar");
+calendarBtn.setBounds(310, 410, 140, 30);
+add(calendarBtn);
+
+// Add action to open calendar page
+calendarBtn.addActionListener(e -> openCalendarPage());
+
+
         // Add functionality to clear button
         clearBtn.addActionListener(e -> clearAllData());
 
         // Make window visible
         setVisible(true);
+
+        
     }
 
     // Adds a new income or expense to the tracker
     private void addTransaction(boolean isIncome) {
         String desc = descriptionField.getText().trim();
         String amtText = amountField.getText().trim();
-
+    
         if (desc.isEmpty() || amtText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter both description and amount.");
             return;
         }
-
+    
         try {
             double amt = Double.parseDouble(amtText);
             if (!isIncome) amt = -amt;
-
+    
             balance += amt;
             String type = isIncome ? "Income" : "Expense";
-            String entry = String.format("%s: %s | $%.2f", type, desc, Math.abs(amt));
+    
+            // Get current timestamp
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String timestamp = now.format(formatter);
+    
+            // 📌 Place the timestamp *at the end* now
+            String entry = String.format("%s: %s | $%.2f [%s]", type, desc, Math.abs(amt), timestamp);
             transactions.add(entry);
-
-            updateUI(); // Refresh display
-
-            // Clear inputs
+    
+            updateUI();
+    
             descriptionField.setText("");
             amountField.setText("");
-
-            saveDataToFile(); // Save data
-
+    
+            saveDataToFile();
+    
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter a valid number.");
         }
     }
+    
+    
 
     // Updates the transaction display and balance
     private void updateUI() {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial;'>");
-
+    
         for (String t : transactions) {
-            if (t.startsWith("Income")) {
+            if (t.contains("Income:")) {
                 html.append("<span style='color: green;'>").append(t).append("</span><br>");
-            } else if (t.startsWith("Expense")) {
+            } else if (t.contains("Expense:")) {
                 html.append("<span style='color: red;'>").append(t).append("</span><br>");
             } else {
                 html.append(t).append("<br>");
             }
         }
-
+    
         html.append("</body></html>");
         transactionArea.setText(html.toString());
-
+    
         balanceLabel.setText(String.format("Balance: $%.2f", balance));
     }
+    
 
     // Saves transaction history and balance to a file
     private void saveDataToFile() {
@@ -190,4 +216,93 @@ public class Mainframe extends JFrame {
             }
         }
     }
+    private void openCalendarPage() {
+        JFrame calendarFrame = new JFrame("📅 Daily Summary");
+        calendarFrame.setSize(400, 300);
+        calendarFrame.setLayout(null);
+    
+        // Label for date
+        JLabel dateLabel = new JLabel("Enter date (yyyy-MM-dd):");
+        dateLabel.setBounds(30, 30, 200, 25);
+        calendarFrame.add(dateLabel);
+    
+        // Text field to type a date
+        JTextField dateField = new JTextField();
+        dateField.setBounds(30, 60, 200, 25);
+        calendarFrame.add(dateField);
+    
+        // Button to view earnings/spending
+        JButton viewBtn = new JButton("View Summary");
+        viewBtn.setBounds(250, 60, 100, 25);
+        calendarFrame.add(viewBtn);
+    
+        // Area to show results
+        JTextArea summaryArea = new JTextArea();
+        summaryArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(summaryArea);
+        scrollPane.setBounds(30, 100, 320, 120);
+        calendarFrame.add(scrollPane);
+    
+        // Action when clicking View
+        viewBtn.addActionListener(e -> {
+            String selectedDate = dateField.getText().trim();
+            if (selectedDate.isEmpty()) {
+                JOptionPane.showMessageDialog(calendarFrame, "Please enter a date.");
+                return;
+            }
+    
+            double dailyIncome = 0.0;
+            double dailyExpense = 0.0;
+    
+            for (String t : transactions) {
+                // Extract the timestamp between [ ]
+                int startBracket = t.indexOf('[');
+                int endBracket = t.indexOf(']');
+                if (startBracket != -1 && endBracket != -1 && endBracket > startBracket) {
+                    String timestamp = t.substring(startBracket + 1, endBracket);
+                    String transactionDate = timestamp.split(" ")[0]; // Only the date part yyyy-MM-dd
+            
+                    // Now compare the extracted date
+                    if (transactionDate.equals(selectedDate)) {
+                        if (t.contains("Income:") || t.contains("Expense:")) {
+                            String[] parts = t.split("\\|");
+                            if (parts.length > 1) {
+                                String amountPart = parts[1].trim();
+                                if (amountPart.startsWith("$")) {
+                                    int spaceIndex = amountPart.indexOf(' ');
+                                    String amountString;
+                                    if (spaceIndex > 0) {
+                                        amountString = amountPart.substring(1, spaceIndex);
+                                    } else {
+                                        amountString = amountPart.substring(1);
+                                    }
+            
+                                    try {
+                                        double amt = Double.parseDouble(amountString);
+                                        if (t.contains("Income:")) {
+                                            dailyIncome += amt;
+                                        } else if (t.contains("Expense:")) {
+                                            dailyExpense += amt;
+                                        }
+                                    } catch (NumberFormatException ex) {
+                                        // skip if broken
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            
+    
+            summaryArea.setText(String.format(
+                "Summary for %s:\n\nTotal Income: $%.2f\nTotal Expense: $%.2f\nNet: $%.2f",
+                selectedDate, dailyIncome, dailyExpense, (dailyIncome - dailyExpense)
+            ));
+        });
+    
+        calendarFrame.setVisible(true);
+    }
+    
 }
