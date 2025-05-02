@@ -91,6 +91,17 @@ add(calendarBtn);
 // Add action to open calendar page
 calendarBtn.addActionListener(e -> openCalendarPage());
 
+        // --- Category Label ---
+JLabel categoryLabel = new JLabel("Category:");
+categoryLabel.setBounds(30, 100, 100, 25);
+add(categoryLabel);
+
+// --- Category Dropdown ---
+String[] categories = {"General", "Food", "Work", "Rent", "Entertainment", "Transport", "Other"};
+JComboBox<String> categoryBox = new JComboBox<>(categories);
+categoryBox.setBounds(130, 100, 150, 25);
+add(categoryBox);
+
 
         // Add functionality to clear button
         clearBtn.addActionListener(e -> clearAllData());
@@ -105,7 +116,8 @@ calendarBtn.addActionListener(e -> openCalendarPage());
     private void addTransaction(boolean isIncome) {
         String desc = descriptionField.getText().trim();
         String amtText = amountField.getText().trim();
-    
+        String category = ((JComboBox<String>) getContentPane().getComponentAt(130, 100)).getSelectedItem().toString();
+
         if (desc.isEmpty() || amtText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter both description and amount.");
             return;
@@ -124,7 +136,7 @@ calendarBtn.addActionListener(e -> openCalendarPage());
             String timestamp = now.format(formatter);
     
             // 📌 Place the timestamp *at the end* now
-            String entry = String.format("%s: %s | $%.2f [%s]", type, desc, Math.abs(amt), timestamp);
+            String entry = String.format("%s: %s [%s] | $%.2f [%s]", type, desc, category, Math.abs(amt), timestamp);
             transactions.add(entry);
     
             updateUI();
