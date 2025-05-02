@@ -17,6 +17,8 @@ public class Mainframe extends JFrame {
     private JTextField descriptionField, amountField;
     private JEditorPane transactionArea;
     private JLabel balanceLabel;
+    private JComboBox<String> categoryBox;
+
 
     // Data variables
     private double balance = 0.0;
@@ -97,10 +99,19 @@ categoryLabel.setBounds(30, 100, 100, 25);
 add(categoryLabel);
 
 // --- Category Dropdown ---
-String[] categories = {"General", "Food", "Work", "Rent", "Entertainment", "Transport", "Other"};
-JComboBox<String> categoryBox = new JComboBox<>(categories);
+categoryBox = new JComboBox<>(new String[] {
+    "General", "Food", "Work", "Rent", "Entertainment", "Transport", "Other"
+});
 categoryBox.setBounds(130, 100, 150, 25);
 add(categoryBox);
+
+
+// --- Monthly Summary Button ---
+JButton monthBtn = new JButton("Monthly Summary");
+monthBtn.setBounds(160, 450, 160, 30);
+add(monthBtn);
+
+monthBtn.addActionListener(e -> openMonthlySummaryPage());
 
 
         // Add functionality to clear button
@@ -116,7 +127,7 @@ add(categoryBox);
     private void addTransaction(boolean isIncome) {
         String desc = descriptionField.getText().trim();
         String amtText = amountField.getText().trim();
-        String category = ((JComboBox<String>) getContentPane().getComponentAt(130, 100)).getSelectedItem().toString();
+        String category = categoryBox.getSelectedItem().toString();
 
         if (desc.isEmpty() || amtText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter both description and amount.");
@@ -228,6 +239,96 @@ add(categoryBox);
             }
         }
     }
+
+    private void openMonthlySummaryPage() {
+        JFrame monthFrame = new JFrame("📅 Monthly Summary");
+        monthFrame.setSize(400, 300);
+        monthFrame.setLayout(null);
+    
+        // --- Month Dropdown ---
+        JLabel monthLabel = new JLabel("Select Month:");
+        monthLabel.setBounds(30, 30, 100, 25);
+        monthFrame.add(monthLabel);
+    
+        String[] monthNames = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        };
+        JComboBox<String> monthDropdown = new JComboBox<>(monthNames);
+        monthDropdown.setBounds(140, 30, 150, 25);
+        monthFrame.add(monthDropdown);
+    
+        // --- Year Dropdown ---
+        JLabel yearLabel = new JLabel("Select Year:");
+        yearLabel.setBounds(30, 70, 100, 25);
+        monthFrame.add(yearLabel);
+    
+        String[] years = {"2022", "2023", "2024", "2025", "2026"};
+        JComboBox<String> yearDropdown = new JComboBox<>(years);
+        yearDropdown.setBounds(140, 70, 150, 25);
+        monthFrame.add(yearDropdown);
+    
+        // --- View Button ---
+        JButton viewBtn = new JButton("View Summary");
+        viewBtn.setBounds(140, 110, 150, 30);
+        monthFrame.add(viewBtn);
+    
+        // --- Results Area ---
+        JTextArea resultArea = new JTextArea();
+        resultArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(resultArea);
+        scrollPane.setBounds(30, 160, 320, 90);
+        monthFrame.add(scrollPane);
+    
+        // --- Logic for Summary ---
+        viewBtn.addActionListener(e -> {
+            int month = monthDropdown.getSelectedIndex() + 1; // Jan = 0 → 1
+            int year = Integer.parseInt(yearDropdown.getSelectedItem().toString());
+            double income = 0, expense = 0;
+    
+            for (String t : transactions) {
+                int start = t.indexOf("[");
+                int end = t.indexOf("]");
+                if (start != -1 && end != -1 && end > start) {
+                    String dateTime = t.substring(start + 1, end); // full timestamp
+                    String[] parts = dateTime.split(" ")[0].split("-"); // yyyy-MM-dd
+                    int transYear = Integer.parseInt(parts[0]);
+                    int transMonth = Integer.parseInt(parts[1]);
+    
+                    if (transYear == year && transMonth == month) {
+                        String[] tParts = t.split("\\|");
+                        if (tParts.length > 1) {
+                            String amountPart = tParts[1].trim();
+                            if (amountPart.startsWith("$")) {
+                                int spaceIndex = amountPart.indexOf(' ');
+                                String amountString = (spaceIndex > 0)
+                                    ? amountPart.substring(1, spaceIndex)
+                                    : amountPart.substring(1);
+    
+                                try {
+                                    double amt = Double.parseDouble(amountString);
+                                    if (t.contains("Income:")) income += amt;
+                                    else if (t.contains("Expense:")) expense += amt;
+                                } catch (NumberFormatException exNum) {
+                                    // Skip malformed amounts
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    
+            double net = income - expense;
+    
+            resultArea.setText(String.format(
+                "Summary for %s %d:\n\nTotal Income: $%.2f\nTotal Expense: $%.2f\nNet: $%.2f",
+                monthNames[month - 1], year, income, expense, net
+            ));
+        });
+    
+        monthFrame.setVisible(true);
+    }
+    
     private void openCalendarPage() {
         JFrame calendarFrame = new JFrame("📅 Daily Summary");
         calendarFrame.setSize(400, 300);
