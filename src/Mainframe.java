@@ -29,7 +29,7 @@ public class Mainframe extends JFrame {
     // Constructor to build the user interface
     public Mainframe() {
         setTitle("💰 Income and Expense Tracker");
-        setSize(500, 500);
+        setSize(500, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
@@ -52,11 +52,11 @@ public class Mainframe extends JFrame {
 
         // --- Buttons for adding income and expense ---
         JButton incomeBtn = new JButton("Add Income");
-        incomeBtn.setBounds(130, 100, 120, 30);
+        incomeBtn.setBounds(130, 140, 120, 30);
         add(incomeBtn);
 
         JButton expenseBtn = new JButton("Add Expense");
-        expenseBtn.setBounds(260, 100, 120, 30);
+        expenseBtn.setBounds(260, 140, 120, 30);
         add(expenseBtn);
 
         // --- Area to display transactions ---
@@ -64,12 +64,12 @@ public class Mainframe extends JFrame {
         transactionArea.setContentType("text/html"); // Enables colored text
         transactionArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(transactionArea);
-        scrollPane.setBounds(30, 150, 400, 200);
+        scrollPane.setBounds(30, 190, 400, 200);
         add(scrollPane);
 
         // --- Displays current balance ---
         balanceLabel = new JLabel("Balance: $0.00");
-        balanceLabel.setBounds(30, 370, 300, 25);
+        balanceLabel.setBounds(30, 400, 300, 25);
         balanceLabel.setFont(new Font("Arial", Font.BOLD, 14));
         add(balanceLabel);
 
@@ -87,7 +87,7 @@ public class Mainframe extends JFrame {
 
         // --- Calendar Button ---
 JButton calendarBtn = new JButton("View Calendar");
-calendarBtn.setBounds(310, 410, 140, 30);
+calendarBtn.setBounds(100, 480, 140, 30);
 add(calendarBtn);
 
 // Add action to open calendar page
@@ -102,13 +102,14 @@ add(categoryLabel);
 categoryBox = new JComboBox<>(new String[] {
     "General", "Food", "Work", "Rent", "Entertainment", "Transport", "Other"
 });
-categoryBox.setBounds(130, 100, 150, 25);
+categoryBox.setBounds(130, 100, 300, 25);
 add(categoryBox);
+
 
 
 // --- Monthly Summary Button ---
 JButton monthBtn = new JButton("Monthly Summary");
-monthBtn.setBounds(160, 450, 160, 30);
+monthBtn.setBounds(250, 480, 140, 30);
 add(monthBtn);
 
 monthBtn.addActionListener(e -> openMonthlySummaryPage());
